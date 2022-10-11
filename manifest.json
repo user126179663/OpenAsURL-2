@@ -1,0 +1,18 @@
+{
+	
+	"manifest_version": 3,
+	"name": "URL として開く 2",
+	"short_name": "ttp",
+	"version": "1.0",
+	
+	"description": "",
+	
+	"icons": { "512": "icon.png", "64": "icon_small.png" },
+	
+	"permissions": [ "activeTab", "contextMenus", "notifications", "storage" ],
+	
+	"background": { "scripts": [ "regex-weburl.js", "main.js" ] },
+	
+	"options_ui": { "page": "options.html", "browser_style": true, "open_in_tab": false }
+	
+}
