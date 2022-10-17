@@ -1,0 +1,17 @@
+{
+	"default-protocol": false,
+	"upgrade-https": false,
+	"move-tab-opened": false,
+	"show-selected-text": true,
+	"enabled-notifications": true,
+	
+	"main-item-in-context-menu": {
+		"option": {
+			"id": "main-menu",
+			"contexts": [ "selection" ]
+		},
+		"accessKey": "(&U)",
+		"extendedMenuItemText": ": \"%s\""
+	}
+	
+}

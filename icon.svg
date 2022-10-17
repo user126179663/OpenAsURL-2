@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="icon-2.svg"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:zoom="1.6601562"
+     inkscape:cx="177.09176"
+     inkscape:cy="234.01412"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="1916"
+     inkscape:window-y="48"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="126.49412"
+       y="119.26588"
+       width="320.45176"
+       height="253.59059"
+       id="rect2463" />
+    <rect
+       x="65.054118"
+       y="55.416471"
+       width="365.02588"
+       height="359.00235"
+       id="rect113" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       id="text111"
+       style="fill:black;fill-opacity:1;stroke:none;font-family:'04b11';font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect113);-inkscape-font-specification:'04b11';font-stretch:normal;font-variant:normal" />
+    <g
+       aria-label="://&gt;"
+       id="text2578"
+       style="font-size:352.127px;line-height:1.25;font-family:Bigtime;-inkscape-font-specification:Bigtime;letter-spacing:0px;word-spacing:0px;stroke-width:1.76064">
+      <path
+         d="m 144.79622,252.54887 c -27.19998,17.59999 6.93333,30.39998 26.13332,14.93332 19.19999,-14.93332 -6.93333,-27.73331 -26.13332,-14.93332 z m 47.99997,-69.33329 c -26.66665,17.59999 6.93333,30.39998 26.13332,14.93332 19.19999,-14.93332 -6.93333,-27.73331 -26.13332,-14.93332 z"
+         style="font-size:533.333px;letter-spacing:-200px"
+         id="path2737" />
+      <path
+         d="M 42.278285,469.88852 C 139.81747,338.54515 334.89583,119.17002 425.04035,44.871218 431.37864,38.532932 409.89889,33.603153 390.88403,46.98398 307.0778,113.53599 109.53454,355.44724 22.911299,467.42363 c -3.873397,4.92978 14.085081,9.50743 19.366986,2.46489 z"
+         style="letter-spacing:-120px"
+         id="path2739" />
+      <path
+         d="M 105.73643,469.88852 C 203.27561,338.54515 398.35398,119.17002 488.49849,44.871218 494.83678,38.532932 473.35703,33.603153 454.34217,46.98398 370.53594,113.53599 172.99269,355.44724 86.369444,467.42363 c -3.873397,4.92978 14.085086,9.50743 19.366986,2.46489 z"
+         style="letter-spacing:-80px"
+         id="path2741" />
+      <path
+         d="m 374.64601,268.18667 c -35.46671,41.33338 -129.86683,88.53344 -144.53351,97.60012 -5.60001,3.2 13.86668,5.06667 18.13336,3.46667 21.06669,-8.53335 116.80014,-61.06674 143.20017,-96.00012 24.80003,-32.80004 -45.06672,-100.26679 -62.66674,-115.73347 -1.6,-1.33334 -13.86669,-2.66667 -12.80002,-0.26667 29.33337,33.86671 87.46677,77.33343 58.66674,110.93347 z"
+         style="font-size:266.667px"
+         id="path2743" />
+    </g>
+  </g>
+</svg>

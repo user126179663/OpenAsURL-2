@@ -3,53 +3,46 @@
 	<head>
 		<meta charset="utf-8">
 		<title>オプション - URL として開く</title>
+		<script src="wx.js"></script>
 		<script src="options.js"></script>
-		<style>
-			
-			body {
-				padding-top: 1.5vmax;
-			}
-			
-			.fr {
-				align-items: center;
-				display: flex;
-			}
-			
-			.check [type="checkbox"] {
-				margin-right: 1vmax;
-			}
-			
-			#settings > :not(:last-child) {
-				
-				margin-bottom: .8vmax;
-				
-			}
-			
-			#buttons {
-				display: flex;
-				justify-content: flex-end;
-				margin-top: 2vmax;
-			}
-			
-		</style>
 	</head>
 	<body>
-		<div id="settings">
-			<div class="check fr">
-				<input id="default-protocol" type="checkbox" data-default-value="false" data-disabled-value="">
-				<label for="default-protocol">スキーム名が存在しない場合、HTTP で補間する。（既定は HTTPS）</label>
-			</div>
-			<div class="check fr">
-				<input id="upgrade-https" type="checkbox" data-default-value="false" data-disable-true="#default-protocol">
-				<label for="upgrade-https">常に HTTPS での接続を試みる。</label>
-			</div>
-			<div class="check fr">
-				<input id="move-tab-opened" type="checkbox" data-default-value="false">
-				<label for="move-tab-opened">URL を開いたら、そのタブを表示する。（複数開いた場合は先頭のタブを表示する）</label>
-			</div>
-		</div>
-		<div id="buttons">
-			<button id="restore-default-settings" type="button" data-event-type="click">既定の設定を復元</button>
-		</div>
+		
+		<template id="open-as-url-options">
+			
+			<link rel="stylesheet" href="options.css">
+			
+			<section id="settings">
+				<div class="check fr">
+					<input id="default-protocol" class="configurable" type="checkbox" data-default-value="false" data-disabled-value="">
+					<label for="default-protocol">スキーム名が存在しない場合、HTTP で補間する。（既定は HTTPS）</label>
+				</div>
+				<div class="check fr">
+					<input id="upgrade-https" class="configurable" type="checkbox" data-default-value="false" data-disable-true="#default-protocol">
+					<label for="upgrade-https">常に HTTPS での接続を試みる。</label>
+				</div>
+				<div class="check fr">
+					<input id="move-tab-opened" class="configurable" type="checkbox" data-default-value="false">
+					<label for="move-tab-opened">URL を開いたら、そのタブを表示する。（複数開いた場合は先頭のタブを表示します）</label>
+				</div>
+				<div class="check fr">
+					<input id="show-selected-text" class="configurable" type="checkbox" data-default-value="true">
+					<label for="show-selected-text">メニュー内の項目に選択中のテキストを表示する。</label>
+				</div>
+				<div class="check fr">
+					<!--<input id="enabled-notifications" type="checkbox" data-default-value="false" data-permissions="notifications">-->
+					<input id="enabled-notifications" class="configurable" type="checkbox" data-default-value="true">
+					<label for="enabled-notifications">通知を許可する。（選択されたテキストに URL がなかった時などに表示されます）</label>
+				</div>
+			</section>
+			
+			<section id="buttons">
+				<button id="restore-default-settings" type="button" data-event-type="click">既定の設定を復元</button>
+			</section>
+			
+		</template>
+		
+		<open-as-url-options></open-as-url-options>
+		
 	</body>
 </html>
