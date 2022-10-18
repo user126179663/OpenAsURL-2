@@ -1,7 +1,9 @@
 {
+	"ignore-no-scheme": false,
 	"default-protocol": false,
 	"upgrade-https": false,
-	"move-tab-opened": false,
+	"move-tab-opened": true,
+	"open-incognito": false,
 	"show-selected-text": true,
 	"enabled-notifications": true,
 	

@@ -1,5 +1,13 @@
 body {
-	padding-top: 1.5vmax;
+}
+
+#settings {
+	
+	border: none;
+	display: block;
+	margin: 0;
+	padding: 1.5vmax 0 0;
+	
 }
 
 .fr {

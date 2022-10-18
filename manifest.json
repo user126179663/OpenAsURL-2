@@ -1,25 +1,25 @@
 {
 	
 	"manifest_version": 3,
-	"name": "URL として開く dev",
+	"name": "URL を開く",
 	"short_name": "://>",
 	"version": "1.1",
 	
-	"description": "選択したテキストを URL として開きます。",
+	"description": "選択したテキスト内の URL を開きます。",
 	
 	"icons": { "48": "icon.svg" },
 	
-	"action": {
-		
-		"default_icon": "icon.svg"
-		
-	},
+	//"action": {
+	//	
+	//	"default_icon": "icon.svg"
+	//	
+	//},
 	
 	"permissions": [ "activeTab", "contextMenus", "notifications", "storage" ],
 	"optional_permissions": [],
 	
 	"background": { "scripts": [ "wx.js", "regex-weburl.js", "background.js" ] },
 	
-	"options_ui": { "page": "options.html", "browser_style": true, "open_in_tab": true }
+	"options_ui": { "page": "options.html", "browser_style": true, "open_in_tab": false }
 	
 }

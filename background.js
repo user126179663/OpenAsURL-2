@@ -3,7 +3,7 @@ class OpenAsUrl extends WX {
 	static {
 		
 		this.tagName = 'open-as-url',
-		this.apiKeys = [ 'contextMenus', 'notifications', 'permissions', 'runtime', 'storage', 'tabs' ],
+		this.apiKeys = [ 'contextMenus', 'extension', 'notifications', 'permissions', 'runtime', 'storage', 'tabs', 'windows' ],
 		
 		this.DEFAULT_SETTINGS_PATH = 'default-settings.json',
 		
@@ -14,28 +14,33 @@ class OpenAsUrl extends WX {
 		
 	}
 	
-	static getUrls(urls, upgradesToHttps, usesHttpByDefault) {
+	static getUrls(urls, ignoresNoScheme, upgradesToHttps, usesHttpByDefault) {
 		
 		if (urls && typeof urls === 'string' && (urls = urls.match(re_weburl_mod))) {
 			
-			const l = urls.length;
+			let l;
 			
-			if (l) {
+			if (l = urls.length) {
 				
 				const	{ defaultProtocol, fixProtocolRx, secondaryProtocol } = this,
 						definedDefaultProtocol = usesHttpByDefault ? secondaryProtocol : defaultProtocol;
 				let i, url,matched;
 				
 				i = -1;
-				while (++i < l)	urls[i] = (matched = (url = urls[i]).match(fixProtocolRx))[5] ?
+				while (++i < l)	urls[i] = url = (matched = (url = urls[i]).match(fixProtocolRx))[5] ?
 											(
 												matched[1] ?
 													(matched[2] && matched[3]) || (matched[1] = 'http' + (matched[4] ?? '')) :
-													(matched[1] = definedDefaultProtocol),
-												matched[1] === 'http' && upgradesToHttps && (matched[1] += 's'),
-												matched[1] + '://' + url.substring(matched[0].length)
+													(matched[1] = ignoresNoScheme || definedDefaultProtocol),
+												matched[1] === ignoresNoScheme ?
+													ignoresNoScheme :
+													(
+														matched[1] === 'http' && upgradesToHttps && (matched[1] += 's'),
+														matched[1] + '://' + url.substring(matched[0].length)
+													)
 											) :
-											definedDefaultProtocol + '://' + url;
+											ignoresNoScheme || (urls[i] = definedDefaultProtocol + '://' + url),
+											url === true && (urls.splice(i--,1), --l);
 				
 				return urls;
 				
@@ -55,6 +60,12 @@ class OpenAsUrl extends WX {
 			noUrl:	{
 							iconUrl: 'icon.svg',
 							message: 'URL はありません。',
+							title: this.meta?.name,
+							type: 'basic'
+						},
+			notAllowedIncognitoAccess:	{
+							iconUrl: 'icon.svg',
+							message: 'プライベートウィンドウでの実行が許可されていないため、設定に基づいて URL をプライベートウィンドウで開くことができません。',
 							title: this.meta?.name,
 							type: 'basic'
 						}
@@ -124,7 +135,7 @@ class OpenAsUrl extends WX {
 	openUrls(urls, tabIndex) {
 		
 		const l = urls && (Array.isArray(urls) ? urls : (urls = [ urls ])).length,
-				{ browser: { tabs, notifications }, setting } = this;
+				{ browser: { extension, tabs, notifications, windows }, notification, setting } = this;
 		
 		if (l) {
 			
@@ -132,15 +143,28 @@ class OpenAsUrl extends WX {
 					tabOption = { active: !!setting['move-tab-opened'] };
 			let i;
 			
-			i = -1, hasTabIndex && (tabOption.index = tabIndex - 1);
-			while (++i < l)	hasTabIndex && ++tabOption.index,
-									tabOption.url = urls[i],
-									tabs?.create?.(tabOption),
-									i || (tabOption.active &&= false);
+			if (setting['open-incognito']) {
+				
+				extension.isAllowedIncognitoAccess().then(
+						allowedIncognitoAccess =>
+							allowedIncognitoAccess ?	windows.create?.({ incognito: true, url: urls }) :
+																setting['enabled-notifications'] &&
+																	(notifications?.create?.(notification.notAllowedIncognitoAccess))
+					);
+				
+			} else {
+				
+				i = -1, hasTabIndex && (tabOption.index = tabIndex - 1);
+				while (++i < l)	hasTabIndex && ++tabOption.index,
+										tabOption.url = urls[i],
+										tabs?.create?.(tabOption),
+										i || (tabOption.active &&= false);
+				
+			}
 			
 		} else {
 			
-			setting['enabled-notifications'] && (notifications?.create?.(this.notification.noUrl));
+			setting['enabled-notifications'] && (notifications?.create?.(notification.noUrl));
 			
 		}
 		
@@ -177,7 +201,7 @@ customElements.define(OpenAsUrl.tagName, OpenAsUrl);
 // openAsUrl.available.then(...) で、イベントが通知されたリスナー内ののインスタンスを使う処理を実行している。
 const openAsUrl = new OpenAsUrl(browser || chrome);
 
-browser.action.onClicked.addListener(() => browser.runtime.openOptionsPage()),
+browser.action?.onClicked?.addListener?.(() => browser.runtime.openOptionsPage()),
 
 browser.storage?.onChanged?.addListener?.(storageChange => {
 		
@@ -192,6 +216,7 @@ browser.contextMenus?.onClicked?.addListener?.((info, tab) => {
 				openAsUrl.openUrls(
 						OpenAsUrl.getUrls(
 								info.selectionText,
+								openAsUrl.setting['ignore-no-scheme'],
 								openAsUrl.setting['upgrade-https'],
 								openAsUrl.setting['default-protocol']
 							),

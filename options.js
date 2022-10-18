@@ -7,7 +7,7 @@ class OpenAsUrlOptions extends WX {
 		
 		this.DEFAULT_SETTINGS_PATH = 'default-settings.json',
 		
-		this.apiKeys = [ 'contextMenus', 'permissions', 'runtime', 'storage' ];
+		this.apiKeys = [ 'contextMenus', 'extension', 'permissions', 'runtime', 'storage' ];
 		
 	}
 	
@@ -129,6 +129,26 @@ class OpenAsUrlOptions extends WX {
 			
 			break;
 			
+			case 'open-incognito':
+			
+			if (target.checked) {
+				
+				let enabledIncognito;
+				
+				await this.browser.extension.isAllowedIncognitoAccess().then(v => enabledIncognito = v);
+				
+				if (!enabledIncognito) {
+					target.checked = false;
+					return;
+				}
+				
+			}
+			
+			permissionLists = flatPermissionsLists(grantedPermissions).additional,
+			reflection ||= [ this.save, this, [] ];
+			
+			break;
+			
 			case 'show-selected-text':
 			
 			reflection = [ this.save, this, [ { target, beforeApplied: target.checked } ] ];
@@ -243,12 +263,12 @@ class OpenAsUrlOptions extends WX {
 	
 	async apply(setting = this.setting, disablesUpdate, detail) {
 		
-		const { lastSetting } = this, ctrls = this.getControllers(), removalNodes = [];
+		const	{ lastSetting, shadow } = this, ctrls = this.getControllers(), removalNodes = [],
+				field = this.shadow.getElementById('settings');
 		let i,l,i0,l0,k, ctrl, current, changedSetting;
 		
-		i = -1, l = ctrls.length;
-		while (++i < l)	(ctrl = ctrls[i]).setAttribute('disabled', ''),
-								ctrl.removeEventListener(ctrl.dataset.eventType, this.changedCtrl);
+		i = -1, l = ctrls.length, field.setAttribute('disabled', '');
+		while (++i < l) (ctrl = ctrls[i]).removeEventListener(ctrl.dataset.eventType, this.changedCtrl);
 		
 		i = i0 = -1;
 		while (++i < l)
@@ -302,10 +322,9 @@ class OpenAsUrlOptions extends WX {
 			await this.setStorage(setting);
 			
 			i = -1, l = ctrls.length;
-			while (++i < l)	(ctrl = ctrls[i]).addEventListener(ctrl.dataset.eventType, this.changedCtrl),
-									ctrl.removeAttribute('disabled');
+			while (++i < l) (ctrl = ctrls[i]).addEventListener(ctrl.dataset.eventType, this.changedCtrl);
 			
-			i = -1;
+			i = -1, field.removeAttribute('disabled');
 			while (++i < l) this.constrain(ctrl = ctrls[i]);
 			
 			this.dispatchEvent(new CustomEvent('applied', { detail: { setting, detail } }));
@@ -316,15 +335,30 @@ class OpenAsUrlOptions extends WX {
 		
 	}
 	
-	constrain({ checked, dataset }) {
+	constrain(target) {
 		
-		let i,l,nodes;
+		const { shadow } = this, { checked } = target, disabled = [], enabled = [];
+		let i,l,i0,i1, ctrls,ctrl, enables;
 		
-		i = -1, l = (nodes = this.shadow.querySelectorAll(dataset.disableTrue)).length;
-		while (++i < l) nodes[i][(checked ? 'set' : 'remove') + 'Attribute']('disabled', '');
+		i = -1, l = (ctrls = shadow.querySelectorAll(target.dataset.disableTrue)).length;
+		while (++i < l) {
+			('disable-true' in (ctrl = ctrls[i]).dataset || 'disable-false' in ctrl.dataset) && this.constrain(ctrl);
+			if (ctrl.hasAttribute('disabled') ? !!ctrl.dataset.disabledValue : ctrl.checked) break;
+		}
 		
-		i = -1, l = (nodes = this.shadow.querySelectorAll(dataset.disableFalse)).length;
-		while (++i < l) nodes[i][(checked ? 'remove' : 'set') + 'Attribute']('disabled', '');
+		if (enables = i === l) {
+			
+			i = -1, l = (ctrls = shadow.querySelectorAll(target.dataset.disableFalse)).length;
+			while (++i < l) {
+				('disable-true' in (ctrl = ctrls[i]).dataset || 'disable-false' in ctrl.dataset) && this.constrain(ctrl);
+				if (ctrl.hasAttribute('disabled') ? !ctrl.dataset.disabledValue : !ctrl.checked) break;
+			}
+			
+			enables = i === l;
+			
+		}
+		
+		target[(enables ? 'remove' : 'set') + 'Attribute']('disabled', '');
 		
 	}
 	
