@@ -10,18 +10,11 @@ class OpenAsUrl extends WX {
 		this.defaultProtocol = 'https',
 		this.secondaryProtocol = 'http',
 		
-		this.accessKey = '(&U)',
-		this.selectedTextInMenu = ': "%s"',
-		this.menu = {
-			contexts: [ 'selection' ],
-			title: 'URL として開く'
-		},
-		
 		this.fixProtocolRx = /^(((h)?t)?tp(s)?)?(:\/\/)?/;
 		
 	}
 	
-	static getUrls(urls, disableNotice) {
+	static getUrls(urls, upgradesToHttps, usesHttpByDefault) {
 		
 		if (urls && typeof urls === 'string' && (urls = urls.match(re_weburl_mod))) {
 			
@@ -29,8 +22,8 @@ class OpenAsUrl extends WX {
 			
 			if (l) {
 				
-				const	{ 'upgrade-https': upgradesToHttps, 'default-protocol': defaultProtocol, fixProtocolRx } = this,
-						definedDefaultProtocol = defaultProtocol ? OpenAsUrl.secondaryProtocol : OpenAsUrl.defaultProtocol;
+				const	{ defaultProtocol, fixProtocolRx, secondaryProtocol } = this,
+						definedDefaultProtocol = usesHttpByDefault ? secondaryProtocol : defaultProtocol;
 				let i, url,matched;
 				
 				i = -1;
@@ -53,31 +46,16 @@ class OpenAsUrl extends WX {
 		return null;
 		
 	}
-	static changedSetting(storageChange) {
-		hi(storageChange);
-		this.update(WX.getCurrentStorage(storageChange));
-		
-	}
-	
-	static onMenuClicked(info, tab) {
-		
-		this.openUrls(OpenAsUrl.getUrls(info.selectionText), tab.index + 1);
-		
-	}
 	
 	constructor(browser, apiKeys) {
 		
 		super(browser, apiKeys);
 		
-		const { changedSetting, onMenuClicked } = OpenAsUrl;
-		
-		this.changedSetting = changedSetting.bind(this),
-		this.onMenuClicked = onMenuClicked.bind(this),
-		
 		this.notification = {
 			noUrl:	{
-							title: this.meta?.name,
+							iconUrl: 'icon.svg',
 							message: 'URL はありません。',
+							title: this.meta?.name,
 							type: 'basic'
 						}
 		},
@@ -95,67 +73,61 @@ class OpenAsUrl extends WX {
 				{ contextMenus, storage } = this.browser;
 		let k, saves, stored, defaultSetting;
 		
-		storage.onChanged?.removeListener?.(this.changedSetting),
-		
-		await fetch(DEFAULT_SETTINGS_PATH).then(fetched => defaultSetting = fetched),
-		
-		await defaultSetting.json().then(json => defaultSetting = json),
+		await fetch(DEFAULT_SETTINGS_PATH).then(fetched => fetched.json()).then(json => defaultSetting = json),
 		
 		await this.getStorage().then(storage => stored = storage);
 		
 		for (k in defaultSetting) setting[k] = k in stored ? stored[k] : (saves ||= true, defaultSetting[k]);
 		
-		saves && await this.setStorage(setting),
+		this.updateMenu?.(setting["main-item-in-context-menu"].option, true),
 		
-		storage.onChanged?.addListener?.(this.changedSetting),
-		hi(setting),
-		this.MENU_ID && contextMenus?.remove?.(this.MENU_ID),
-		contextMenus.onClicked?.addListener?.(this.onMenuClicked),
-		contextMenus.create?.({
-				
-				...setting["main-item-in-context-menu"].option,
-				
-				title:	this.meta.name +
-							(setting['show-selected-text'] ? setting["main-item-in-context-menu"].extendedMenuItemText : '') +
-							setting["main-item-in-context-menu"].accessKey
-				
-			});
+		saves && await this.setStorage(setting);
 		
 	}
 	
-	updateMenu(option = this.MENU, id = this.MENU_ID) {
+	updateMenu(option = this.mainMenuItemOption, creates) {
 		
-		const { contextMenus } = browser;
+		const	{
+					browser: { contextMenus },
+					meta: { name },
+					setting: {
+						['show-selected-text']: showsText,
+						['main-item-in-context-menu']: { extendedMenuItemText, accessKey }
+					}
+				} = this;
+		let id;
 		
-		contextMenus &&	(
-									'id' in option && (option = { ...option }, delete option.id),
-									contextMenus.update?.(id, option)
-								)
+		contextMenus && typeof contextMenus === 'object' && (
+				
+				(option = { ...option }).title = name + (showsText ? extendedMenuItemText : '') + accessKey,
+				
+				creates ?	contextMenus.create?.(this.mainMenuItemOption = option) :
+								(id = option.id, delete option.id, contextMenus.update?.(id, option))
+				
+			);
 		
 	}
 	
 	openUrls(urls, tabIndex) {
 		
-		const l = urls && (Array.isArray(urls) ? urls : (urls = [ urls ])).length;
+		const l = urls && (Array.isArray(urls) ? urls : (urls = [ urls ])).length,
+				{ browser: { tabs, notifications }, setting } = this;
 		
 		if (l) {
 			
-			const hasTabIndex = typeof tabIndex === 'number', tabOption = { active: !!this['move-tab-opened'] };
+			const	hasTabIndex = typeof tabIndex === 'number',
+					tabOption = { active: !!setting['move-tab-opened'] };
 			let i;
 			
 			i = -1, hasTabIndex && (tabOption.index = tabIndex - 1);
 			while (++i < l)	hasTabIndex && ++tabOption.index,
 									tabOption.url = urls[i],
-									browser.tabs?.create?.(tabOption),
+									tabs?.create?.(tabOption),
 									i || (tabOption.active &&= false);
 			
 		} else {
 			
-			this.getStorage('enabled-notifications').then(storage => {
-					
-					storage['enabled-notifications'] && browser.notifications?.create?.(this.notification.noUrl);
-					
-				});
+			setting['enabled-notifications'] && notifications?.create?.(this.notification.noUrl);
 			
 		}
 		
@@ -174,4 +146,26 @@ class OpenAsUrl extends WX {
 	
 }
 
-customElements.define(OpenAsUrl.tagName, OpenAsUrl), new OpenAsUrl(browser || chrome);
+customElements.define(OpenAsUrl.tagName, OpenAsUrl);
+
+const openAsUrl = new OpenAsUrl(browser || chrome), { browser: wx } = openAsUrl;
+
+wx.storage.onChanged?.addListener?.(storageChange => {
+		
+		const setting = WX.getCurrentStorage(storageChange);
+		
+		openAsUrl.update(setting);
+		
+	}),
+wx.contextMenus.onClicked?.addListener?.((info, tab) => {
+		
+		openAsUrl.openUrls(
+				OpenAsUrl.getUrls(
+						info.selectionText,
+						openAsUrl.setting['upgrade-https'],
+						openAsUrl.setting['default-protocol']
+					),
+				tab.index + 1
+			);
+		
+	});

@@ -11,10 +11,10 @@ class WX extends HTMLElement {
 	}
 	static getCurrentStorage(storageChange, both) {
 		
-		const { changes } = storageChange, l = changes.length, current = {}, last = both && {};
+		const l = storageChange.length, current = {}, last = both && {};
 		let k,v;
 		
-		for (k in changes) current[k] = (v = changes[k]).newValue, both && (last[k] = v.oldValue);
+		for (k in storageChange) current[k] = (v = storageChange[k]).newValue, both && (last[k] = v.oldValue);
 		
 		return both ? { current, last } : current;
 		
