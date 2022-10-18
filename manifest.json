@@ -9,6 +9,12 @@
 	
 	"icons": { "48": "icon.svg" },
 	
+	"action": {
+		
+		"default_icon": "icon.svg"
+		
+	},
+	
 	"permissions": [ "activeTab", "contextMenus", "notifications", "storage" ],
 	"optional_permissions": [],
 	
