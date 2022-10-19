@@ -1,7 +1,7 @@
 {
 	
 	"manifest_version": 3,
-	"name": "URL を開く",
+	"name": "URL を開く dev",
 	"short_name": "://>",
 	"version": "1.1",
 	
@@ -9,17 +9,16 @@
 	
 	"icons": { "48": "icon.svg" },
 	
-	//"action": {
-	//	
-	//	"default_icon": "icon.svg"
-	//	
-	//},
+	"action": {
+		
+		"default_icon": "icon.svg"
+		
+	},
 	
 	"permissions": [ "activeTab", "contextMenus", "notifications", "storage" ],
-	"optional_permissions": [],
 	
 	"background": { "scripts": [ "wx.js", "regex-weburl.js", "background.js" ] },
 	
-	"options_ui": { "page": "options.html", "browser_style": true, "open_in_tab": false }
+	"options_ui": { "page": "options.html", "browser_style": true, "open_in_tab": true }
 	
 }

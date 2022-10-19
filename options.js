@@ -1,13 +1,12 @@
-class OpenAsUrlOptions extends WX {
+class OpenUrlsOptions extends WX {
 	
 	static {
 		
-		this.tagName = 'open-as-url-options',
+		this.tagName = 'open-urls-options',
 		this.template = this.tagName,
 		
-		this.DEFAULT_SETTINGS_PATH = 'default-settings.json',
-		
-		this.apiKeys = [ 'contextMenus', 'extension', 'permissions', 'runtime', 'storage' ];
+		//this.apiKeys = [ 'contextMenus', 'extension', 'permissions', 'runtime', 'storage' ];
+		this.apiKeys = [ 'extension', 'permissions', 'runtime', 'storage' ];
 		
 	}
 	
@@ -40,7 +39,7 @@ class OpenAsUrlOptions extends WX {
 		revokeNodes = document.querySelectorAll(':not(:checked)[data-permissions]')
 	) {
 		
-		const	{ getPermissionsListFromNodes } = OpenAsUrlOptions,
+		const	{ getPermissionsListFromNodes } = OpenUrlsOptions,
 				grants = getPermissionsListFromNodes(grantNodes),
 				revocation = getPermissionsListFromNodes(revokeNodes);
 		let i,i0,l, grant;
@@ -70,27 +69,26 @@ class OpenAsUrlOptions extends WX {
 				
 				const { target } = detail;
 				
-				//coco target がシャドウルート内の要素ではなくインスタンスが示すカスタム要素そのものになっている
 				switch (target?.id) {
 					
-					case 'show-selected-text':
-					
-					if (target.checked === detail.beforeApplied) {
-						
-						const	mainMenuItemSetting = setting['main-item-in-context-menu'],
-								mainMenuItemOption = { ...mainMenuItemSetting.option };
-						
-						delete mainMenuItemOption.id,
-						
-						mainMenuItemOption.title =	this.meta.name +
-															(target.checked ? mainMenuItemSetting.extendedMenuItemText : '') +
-															mainMenuItemSetting.accessKey,
-						
-						this.browser.contextMenus.update(mainMenuItemSetting.option.id, mainMenuItemOption);
-						
-					}
-					
-					break;
+					//case 'show-selected-text':
+					//
+					//if (target.checked === detail.beforeApplied) {
+					//	
+					//	const	mainMenuItemSetting = this.cfg['main-item-in-context-menu'],
+					//			mainMenuItemOption = { ...mainMenuItemSetting.option };
+					//	
+					//	delete mainMenuItemOption.id,
+					//	
+					//	mainMenuItemOption.title =	this.meta.name +
+					//										(target.checked ? mainMenuItemSetting.extendedMenuItemText : '') +
+					//										mainMenuItemSetting.accessKey,
+					//	
+					//	this.browser.contextMenus.update(mainMenuItemSetting.option.id, mainMenuItemOption);
+					//	
+					//}
+					//
+					//break;
 					
 					default:
 					
@@ -103,7 +101,7 @@ class OpenAsUrlOptions extends WX {
 	}
 	static async changedCtrl({ target }) {
 		
-		const	{ flatPermissionsLists } = OpenAsUrlOptions,
+		const	{ CFG_PATH, flatPermissionsLists } = OpenUrlsOptions,
 				grantedPermissions = await this.getGrantedApiKeys(),
 				ctrls = this.getControllers(), l = ctrls.length;
 		let i, ctrl, reflection, permissionLists, callback;
@@ -112,17 +110,21 @@ class OpenAsUrlOptions extends WX {
 			
 			case 'restore-default-settings':
 			
-			const { lastSetting } = this;
-			let i0,i1,k, json, defaultSetting, current;
+			const { cfg: { values }, lastSetting } = this;
+			let i0,l0,i1,k, v;
 			
-			await fetch(OpenAsUrlOptions.DEFAULT_SETTINGS_PATH).
-				then(async fetched => fetched.json()).then(async json => defaultSetting = json),
+			i = i0 = i1 = -1, l0 = values.length, permissionLists = [];
+			while (++i < l) {
+				
+				if ((ctrl = ctrls[i]).dataset.permissions) {
+					
+					i0 = -1, k = ctrl.id;
+					while (++i0 < l0 && k !== values[i0].key);
+					i0 === l0 || ((v = values[i0].value) && lastSetting[k] !== v && (permissionLists[++i1] = ctrl));
+					
+				}
 			
-			i = i0 = i1 = -1, permissionLists = [];
-			while (++i < l)	(ctrl = ctrls[i]).dataset.permissions &&
-										(current = defaultSetting[k = ctrl.dataset.key]) &&
-										lastSetting[k] !== current &&
-										(permissionLists[++i0] = ctrl);
+			}
 			
 			permissionLists = flatPermissionsLists(grantedPermissions, permissionLists).additional,
 			reflection = [ this.apply, this, [ defaultSetting ] ];
@@ -149,10 +151,10 @@ class OpenAsUrlOptions extends WX {
 			
 			break;
 			
-			case 'show-selected-text':
-			
-			reflection = [ this.save, this, [ { target, beforeApplied: target.checked } ] ];
-			
+			//case 'show-selected-text':
+			//
+			//reflection = [ this.save, this, [ { target, beforeApplied: target.checked } ] ];
+			//
 			default:
 			
 			permissionLists = flatPermissionsLists(grantedPermissions).additional,
@@ -189,14 +191,14 @@ class OpenAsUrlOptions extends WX {
 		
 		super(wxApi, apiKeys);
 		
-		const { applied, changedCtrl, changedPermissions } = OpenAsUrlOptions;
+		const { applied, changedCtrl, changedPermissions } = OpenUrlsOptions;
 		
 		this.applied = applied.bind(this),
 		this.changedCtrl = changedCtrl.bind(this),
 		this.changedPermissions = changedPermissions.bind(this),
 		
 		(this.shadow = this.attachShadow({ mode: 'open' })).
-			appendChild(document.getElementById(OpenAsUrlOptions.template).cloneNode(true).content);
+			appendChild(document.getElementById(OpenUrlsOptions.template).cloneNode(true).content);
 		
 	}
 	connectedCallback() {
@@ -207,7 +209,20 @@ class OpenAsUrlOptions extends WX {
 	
 	async init() {
 		
-		await this.getStorage().then(setting => this.setting = setting),
+		await this.getStorage().then(storage => (this.setting = storage.setting, this.cfg = storage.cfg));
+		
+		const settingsNode = this.shadow.getElementById('settings');
+		
+		this.ac?.abort?.();
+		while (settingsNode.firstElementChild) settingsNode.firstElementChild.remove();
+		
+		settingsNode.appendChild(
+				WX.construct(
+					this.cfg.values, undefined, undefined,
+					(elm, data) => 'key' in data &&
+						(elm.querySelector('.configurable').id = elm.querySelector('label').htmlFor = data.key)
+				)
+			),
 		
 		this.addEventListener('applied', this.applied),
 		this.addEventListener('changed-permissions', this.changedPermissions),
@@ -220,13 +235,7 @@ class OpenAsUrlOptions extends WX {
 	
 	getValueNodes() {
 		
-		const nodes = this.shadow.querySelectorAll('.configurable'), l = nodes.length;
-		let i, node;
-		
-		i = -1;
-		while (++i < l) (node = nodes[i]).dataset.key = node.id;
-		
-		return nodes;
+		return this.shadow.querySelectorAll('.configurable');
 		
 	}
 	
@@ -248,14 +257,14 @@ class OpenAsUrlOptions extends WX {
 	
 	save(detail) {
 		
-		const { getCtrlValue } = OpenAsUrlOptions, { setting } = this, ctrls = this.getControllers(), l = ctrls.length;
+		const { getCtrlValue } = OpenUrlsOptions, { setting } = this, ctrls = this.getControllers(), l = ctrls.length;
 		let i,k, ctrl;
 		
 		i = -1;
 		while (++i < l) this.constrain(ctrl = ctrls[i]);
 		
 		i = -1;
-		while (++i < l) (k = (ctrl = ctrls[i]).dataset.key) && (ctrl,setting[k] = getCtrlValue(ctrl));
+		while (++i < l) (k = (ctrl = ctrls[i]).id) && (setting[k] = getCtrlValue(ctrl));
 		
 		this.apply(setting, true, detail);
 		
@@ -263,18 +272,16 @@ class OpenAsUrlOptions extends WX {
 	
 	async apply(setting = this.setting, disablesUpdate, detail) {
 		
-		const	{ lastSetting, shadow } = this, ctrls = this.getControllers(), removalNodes = [],
+		const	{ ac, lastSetting, shadow } = this,
+				ctrls = this.getControllers(), valueNodes = this.getValueNodes(), removalNodes = [],
 				field = this.shadow.getElementById('settings');
-		let i,l,i0,l0,k, ctrl, current, changedSetting;
+		let i,l,i0,l0,k, ctrl, node, current, changedSetting;
 		
-		i = -1, l = ctrls.length, field.setAttribute('disabled', '');
-		while (++i < l) (ctrl = ctrls[i]).removeEventListener(ctrl.dataset.eventType, this.changedCtrl);
-		
-		i = i0 = -1;
+		i = i0 = -1, l  = valueNodes.length, field.setAttribute('disabled', ''), this.ac?.abort?.();
 		while (++i < l)
-			current = setting[k = (ctrl = ctrls[i]).dataset.key],
-			disablesUpdate || (ctrl.checked = current),
-			ctrl.dataset.permissions && !current && lastSetting[k] !== current && (removalNodes[++i0] = ctrl);
+			current = setting[k = (node = valueNodes[i]).id],
+			disablesUpdate || (node.checked = current),
+			node.dataset.permissions && !current && lastSetting[k] !== current && (removalNodes[++i0] = node);
 		
 		if (i0 !== -1) {
 			
@@ -296,7 +303,7 @@ class OpenAsUrlOptions extends WX {
 				});
 			
 			const grantNodes = document.querySelectorAll(`[data-permissions]`);
-			let plist, ds;
+			let plist;
 			
 			// setting と対応する input との値の整合性を確認しているが、
 			// 値の変化が他の input と連動している可能性があるため、不整合が確認できても
@@ -304,9 +311,9 @@ class OpenAsUrlOptions extends WX {
 			
 			i = -1, l = grantNodes.length;
 			while (++i < l) {
-				i0 = -1, l0 = (plist = (ds = grantNodes[i].dataset).permissions.split(' ')).length;
+				i0 = -1, l0 = (plist = (node = grantNodes[i]).dataset.permissions.split(' ')).length;
 				while (++i0 < l0 && granted.indexOf(plist[i0]) !== -1);
-				i0 === l0 || (k = ds.key, changedSetting ||= setting[k] !== false, setting[k] &&= false);
+				i0 === l0 || (k = node.id, changedSetting ||= setting[k] !== false, setting[k] &&= false);
 			}
 			
 		}
@@ -319,13 +326,15 @@ class OpenAsUrlOptions extends WX {
 			
 		} else {
 			
-			await this.setStorage(setting);
+			await this.setStorage({ setting });
+			
+			const eventOption = { signal: (this.ac = new AbortController()).signal };
 			
 			i = -1, l = ctrls.length;
-			while (++i < l) (ctrl = ctrls[i]).addEventListener(ctrl.dataset.eventType, this.changedCtrl);
+			while (++i < l) (ctrl = ctrls[i]).addEventListener(ctrl.dataset.eventType, this.changedCtrl, eventOption);
 			
-			i = -1, field.removeAttribute('disabled');
-			while (++i < l) this.constrain(ctrl = ctrls[i]);
+			i = -1, l = valueNodes.length, field.removeAttribute('disabled');
+			while (++i < l) this.constrain(valueNodes[i]);
 			
 			this.dispatchEvent(new CustomEvent('applied', { detail: { setting, detail } }));
 			
@@ -364,14 +373,4 @@ class OpenAsUrlOptions extends WX {
 	
 }
 
-customElements.define(OpenAsUrlOptions.tagName, OpenAsUrlOptions);
-
-//addEventListener('DOMContentLoaded', () => {
-//
-//const	openAsUrlOptions = document.getElementsByTagName('open-as-url-options')[0],
-//		{ browser: { permissions } } = openAsUrlOptions;
-//
-//permissions.onAdded?.removeListener?.(openAsUrlOptions.apply.bind(openAsUrlOptions)),
-//permissions.onRemoved?.removeListener?.(openAsUrlOptions.apply.bind(openAsUrlOptions));
-//
-//}, { once: true });
+customElements.define(OpenUrlsOptions.tagName, OpenUrlsOptions);

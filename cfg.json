@@ -1,11 +1,100 @@
 {
-	"ignore-no-scheme": false,
-	"default-protocol": false,
-	"upgrade-https": false,
-	"move-tab-opened": true,
-	"open-incognito": false,
-	"show-selected-text": true,
-	"enabled-notifications": true,
+	"values": [
+		
+		{
+			"key": "ignore-no-scheme",
+			"value": false,
+			"attr": "check fr",
+			"children": [
+				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
+				{
+					"tag": "label",
+					"contents": "URL にスキーム名を必須にする。"
+				}
+			]
+		},
+		{
+			"key": "default-protocol",
+			"value": false,
+			"attr": "check fr",
+			"children": [
+				{
+					"tag": "input",
+					"attr": { "class": "configurable", "type": "checkbox" },
+					"ds": { "disabledValue": "", "disableTrue": "#ignore-no-scheme, #upgrade-https" }
+				},
+				{
+					"tag": "label",
+					"contents": "URL にスキーム名がない場合の既定値を HTTPS ではなく HTTP にする。"
+				}
+			]
+		},
+		{
+			"key": "upgrade-https",
+			"value": false,
+			"attr": "check fr",
+			"children": [
+				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
+				{
+					"tag": "label",
+					"contents": "常に HTTPS で接続を試みる。"
+				}
+			]
+		},
+		{
+			"key": "move-tab-opened",
+			"value": true,
+			"attr": "check fr",
+			"children": [
+				{
+					"tag": "input",
+					"attr": { "class": "configurable", "type": "checkbox" },
+					"ds": { "disabledValue": "", "disableTrue": "#open-incognito" }
+				},
+				{
+					"tag": "label",
+					"contents": "URL を開いたら、そのタブを表示する。（複数開いた場合は先頭のタブを表示します）"
+				}
+			]
+		},
+		{
+			"key": "open-incognito",
+			"value": false,
+			"attr": "check fr",
+			"children": [
+				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
+				{
+					"tag": "label",
+					"contents": "URL を開く先を、新規に開いたプライベートウィンドウ内にする。<br>（この拡張機能の管理の「詳細」タブ内にある「プライベートウィンドウでの実行」が「許可する」になっている必要があります）"
+				}
+			]
+		},
+		{
+			"key": "show-selected-text",
+			"value": true,
+			"attr": "check fr",
+			"children": [
+				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
+				{
+					"tag": "label",
+					"contents": "この拡張機能の右クリックメニュー内の項目に、選択中のテキストを表示する。"
+				}
+			]
+		},
+		{
+			"key": "enabled-notifications",
+			"value": true,
+			"attr": "check fr",
+			"children": [
+				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
+				{
+					"tag": "label",
+					"contents": "この拡張機能からの通知を許可する。（選択されたテキストに URL がなかった時などに表示されます）"
+				}
+			]
+		}
+		
+	],
 	
 	"main-item-in-context-menu": {
 		"option": {

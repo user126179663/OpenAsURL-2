@@ -2,24 +2,25 @@
 <html lang="ja">
 	<head>
 		<meta charset="utf-8">
-		<title>オプション - URL として開く</title>
+		<title>オプション</title>
 		<script src="wx.js"></script>
 		<script src="options.js"></script>
+		<script src="options.main.js"></script>
 	</head>
 	<body>
 		
-		<template id="open-as-url-options">
+		<template id="open-urls-options">
 			
 			<link rel="stylesheet" href="options.css">
 			
 			<fieldset id="settings">
-				<div class="check fr">
+				<!--<div class="check fr">
 					<input id="ignore-no-scheme" class="configurable" type="checkbox">
 					<label for="ignore-no-scheme">完全、断片を問わずスキーム名がないテキストはすべて URL として認識しない。</label>
 				</div>
 				<div class="check fr">
 					<input id="default-protocol" class="configurable" type="checkbox" data-disabled-value="" data-disable-true="#ignore-no-scheme, #upgrade-https">
-					<label for="default-protocol">URL にスキーム名がない場合、HTTP で補間する。（既定は HTTPS）</label>
+					<label for="default-protocol">URL にスキーム名がない場合、HTTP で補完する。（既定は HTTPS）</label>
 				</div>
 				<div class="check fr">
 					<input id="upgrade-https" class="configurable" type="checkbox" data-disabled-value="">
@@ -40,7 +41,7 @@
 				<div class="check fr">
 					<input id="enabled-notifications" class="configurable" type="checkbox">
 					<label for="enabled-notifications">この拡張機能からの通知を許可する。（選択されたテキストに URL がなかった時などに表示されます）</label>
-				</div>
+				</div>-->
 			</fieldset>
 			
 			<section id="buttons">
@@ -49,7 +50,7 @@
 			
 		</template>
 		
-		<open-as-url-options></open-as-url-options>
+		<open-urls-options></open-urls-options>
 		
 	</body>
 </html>

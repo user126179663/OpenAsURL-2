@@ -1,11 +1,11 @@
-class OpenAsUrl extends WX {
+class OpenUrls extends WX {
 	
 	static {
 		
-		this.tagName = 'open-as-url',
+		this.tagName = 'open-urls',
 		this.apiKeys = [ 'contextMenus', 'extension', 'notifications', 'permissions', 'runtime', 'storage', 'tabs', 'windows' ],
 		
-		this.DEFAULT_SETTINGS_PATH = 'default-settings.json',
+		this.CFG_PATH = 'cfg.json',
 		
 		this.defaultProtocol = 'https',
 		this.secondaryProtocol = 'http',
@@ -79,31 +79,37 @@ class OpenAsUrl extends WX {
 		
 		return this.inizitalized || !this.available ?
 			(
+				
 				this.initialized = false,
 				this.available = new Promise(async rs => {
 					
 					this.setting = {};
 					
-					const { DEFAULT_SETTINGS_PATH } = OpenAsUrl,
+					const { CFG_PATH } = OpenUrls,
 							{ browser, setting } = this,
 							{ contextMenus, storage } = this.browser;
-					let k, saves, stored, defaultSetting;
+					let i,k, saves, storedStorage, cfg,v;
 					
-					await fetch(DEFAULT_SETTINGS_PATH).then(fetched => fetched.json()).then(json => defaultSetting = json),
+					await fetch(CFG_PATH).then(fetched => fetched.json()).then(json => cfg = json),
 					
-					await this.getStorage().then(storage => stored = storage);
+					await this.getStorage().then(storage => storedStorage = storage);
 					
-					for (k in defaultSetting) setting[k] = k in stored ? stored[k] : (saves ||= true, defaultSetting[k]);
+					const	{ ['main-item-in-context-menu']: mainMenuItem, values } = cfg, l = values.length,
+							{ setting: stored = {} } = storedStorage;
 					
-					this.updateMenu?.(setting["main-item-in-context-menu"].option, true),
+					i = -1;
+					while (++i < l) setting[k = (v = values[i]).key] = k in stored ? stored[k] : (saves ||= true, v.value);
 					
-					saves && await this.setStorage(setting);
+					await this.setStorage({ setting, cfg }),
+					
+					this.updateMenu?.((this.mainMenuItem = mainMenuItem).option, true),
 					
 					this.initialized = true,
 					
 					rs(this);
 					
 				})
+				
 			) :
 			this.available;
 		
@@ -114,21 +120,21 @@ class OpenAsUrl extends WX {
 		const	{
 					browser: { contextMenus },
 					meta: { name },
-					setting: {
-						['show-selected-text']: showsText,
-						['main-item-in-context-menu']: { extendedMenuItemText, accessKey }
-					}
+					setting: { ['show-selected-text']: showsText },
+					mainMenuItem: { extendedMenuItemText, accessKey }
 				} = this;
-		let id;
+		let id, v;
 		
 		contextMenus && typeof contextMenus === 'object' && (
 				
 				(option = { ...option }).title = name + (showsText ? extendedMenuItemText : '') + accessKey,
 				
-				creates ?	contextMenus.create?.(this.mainMenuItemOption = option) :
-								(id = option.id, delete option.id, contextMenus.update?.(id, option))
+				creates ?	(v = contextMenus.create?.(this.mainMenuItemOption = option)) :
+								(id = option.id, delete option.id, v = contextMenus.update?.(id, option))
 				
 			);
+		
+		return v;
 		
 	}
 	
@@ -170,12 +176,12 @@ class OpenAsUrl extends WX {
 		
 	}
 	
-	update(updated) {
+	update(updated, forces) {
 		
 		const { setting } = this;
 		let k;
 		
-		for (k in updated) setting[k] = updated[k];
+		for (k in updated) (forces || k in setting) && (setting[k] = updated[k]);
 		
 		this.updateMenu();
 		
@@ -185,9 +191,9 @@ class OpenAsUrl extends WX {
 
 // オブジェクトが HTMLElement を継承する場合、インスタンスを作る前にオブジェクトを CustomElementRegistry.define で要素として定義する必要がある。
 // でなければ Illigal constructor. のエラーになる。
-customElements.define(OpenAsUrl.tagName, OpenAsUrl);
+customElements.define(OpenUrls.tagName, OpenUrls);
 
-// オブジェクト OpenAsUrl は、初期化処理内に非同期処理が含まれている。
+// オブジェクト OpenUrls は、初期化処理内に非同期処理が含まれている。
 // これは background が実行中の時は問題になりにくいが、
 // background は一度停止したあとにイベントなどを通じて再び実行されると、起動時と同じ処理を再び繰り返す。
 // これは実質的な再起動で、停止前の変数の値などはすべて失われており、クロージャなどを通じて停止前と後での直接的な値の受け渡しもできない。
@@ -197,28 +203,30 @@ customElements.define(OpenAsUrl.tagName, OpenAsUrl);
 // インスタンスのプロパティの作成が間に合わなかった場合に処理に不整合を引き起こす恐れが生じる。
 // そのため、ここではインスタンスの初期化処理の完了で解決する Promise を示すプロパティをインスタンスに作成し、
 // イベントリスナー内ではそのプロパティが持つ Promise の解決後に続く処理を実行するようにしている。
-// 具体的には openAsUrl.available が初期化処理の完了を確認できるプロパティで、
-// openAsUrl.available.then(...) で、イベントが通知されたリスナー内ののインスタンスを使う処理を実行している。
-const openAsUrl = new OpenAsUrl(browser || chrome);
+// 具体的には openUrls.available が初期化処理の完了を確認できるプロパティで、
+// openUrls.available.then(...) で、イベントが通知されたリスナー内ののインスタンスを使う処理を実行している。
+const openUrls = new OpenUrls(browser || chrome);
 
 browser.action?.onClicked?.addListener?.(() => browser.runtime.openOptionsPage()),
 
 browser.storage?.onChanged?.addListener?.(storageChange => {
 		
-		const setting = WX.getCurrentStorage(storageChange);
-		
-		openAsUrl.available.then(() => openAsUrl.update(setting));
+		openUrls.available.then(() => {
+			
+			openUrls.getStorage('setting').then(storage => openUrls.update(storage.setting));
+			
+		});
 		
 	}),
 browser.contextMenus?.onClicked?.addListener?.((info, tab) => {
 		
-		openAsUrl.available.then(() =>
-				openAsUrl.openUrls(
-						OpenAsUrl.getUrls(
+		openUrls.available.then(() =>
+				openUrls.openUrls(
+						OpenUrls.getUrls(
 								info.selectionText,
-								openAsUrl.setting['ignore-no-scheme'],
-								openAsUrl.setting['upgrade-https'],
-								openAsUrl.setting['default-protocol']
+								openUrls.setting['ignore-no-scheme'],
+								openUrls.setting['upgrade-https'],
+								openUrls.setting['default-protocol']
 							),
 						tab.index + 1
 					)
