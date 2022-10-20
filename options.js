@@ -165,21 +165,53 @@ class OpenUrlsOptions extends WX {
 		
 	}
 	
-	static changedPermissions({ detail: { changed, current, type, apiKeys } }) {
+	static changedValues() {
 		
-		this.apply();
+		this.getStorage('setting').then(storage => {
+				
+				const { setting } = this, { setting: stored } = storage;
+				let k;
+				
+				for (k in stored) if (stored[k] !== setting[k]) { this.apply(stored); break; }
+				
+			});
 		
 	}
+	//static changedPermissions({ detail: { apiKeys, changed: { permissions }, current, type } }) {
+	//	
+	//	switch (type) {
+	//		
+	//		case 'add':
+	//		
+	//		break;
+	//		
+	//		case 'remove':
+	//		
+	//		const { setting, shadow } = this, l = permissions.length;
+	//		let i,i0,l0, removalNodes;
+	//		
+	//		i = -1;
+	//		while (++i < l) {
+	//			i0 = -1, l0 = (removalNodes = shadow.querySelectorAll(`[data-permissions~="${permissions[i]}"]`)).length;
+	//			while (++i0 < l0) setting[removalNodes[i].id] = false;
+	//		}
+	//		
+	//		break;
+	//	}
+	//	
+	//	this.apply();
+	//	
+	//}
 	
 	constructor(wxApi = browser || chrome, apiKeys) {
 		
 		super(wxApi, apiKeys);
 		
-		const { applied, changedCtrl, changedPermissions } = OpenUrlsOptions;
+		const { applied, changedCtrl, changedValues } = OpenUrlsOptions;
 		
 		this.applied = applied.bind(this),
 		this.changedCtrl = changedCtrl.bind(this),
-		this.changedPermissions = changedPermissions.bind(this),
+		this.changedValues = changedValues.bind(this),
 		
 		(this.shadow = this.attachShadow({ mode: 'open' })).
 			appendChild(document.getElementById(OpenUrlsOptions.template).cloneNode(true).content);
@@ -208,13 +240,19 @@ class OpenUrlsOptions extends WX {
 		settingsNode.appendChild(
 				WX.construct(
 					this.cfg.values, undefined, undefined,
-					(elm, data) => 'key' in data &&
-						(elm.querySelector('.configurable').id = elm.querySelector('label').htmlFor = data.key)
+					(elm, data) => {
+						
+						const valueNode = elm.querySelector('.configurable');
+						
+						'key' in data && (valueNode.id = elm.querySelector('label').htmlFor = data.key),
+						'permissions' in data && (valueNode.dataset.permissions = data.permissions.join(' '))
+						
+					}
 				)
 			),
 		
 		this.addEventListener('applied', this.applied),
-		this.addEventListener('changed-permissions-sync', this.changedPermissions),
+		this.browser.storage?.onChanged?.addListener?.(this.changedValues),
 		
 		this.lastSetting = {},
 		
@@ -315,7 +353,9 @@ class OpenUrlsOptions extends WX {
 			
 		} else {
 			
+			this.browser.storage?.onChanged?.removeListener?.(this.changedValues),
 			await this.setStorage({ setting });
+			this.browser.storage?.onChanged?.addListener?.(this.changedValues);
 			
 			const eventOption = { signal: (this.ac = new AbortController()).signal };
 			
@@ -324,6 +364,8 @@ class OpenUrlsOptions extends WX {
 			
 			i = -1, l = valueNodes.length, field.removeAttribute('disabled');
 			while (++i < l) this.constrain(valueNodes[i]);
+			
+			field.classList[setting['unwant-hints'] ? 'add' : 'remove']('no-hint'),
 			
 			this.dispatchEvent(new CustomEvent('applied', { detail: { setting, detail } }));
 			

@@ -19,8 +19,45 @@ fieldset {
 	display: flex;
 }
 
+.check:not(:last-child) {
+	
+	--margin: 0 0 .8vmax;
+	
+	border-bottom: 1px solid rgba(216,216,216,1);
+	margin: var(--margin);
+	padding: var(--margin);
+	
+}
+
 .check [type="checkbox"] {
 	margin-right: 1vmax;
+}
+
+.check .description {
+	align-items: center;
+	display: flex;
+	width: 100%;
+}
+
+
+.check .description > * {
+	flex: 1 0;
+}
+
+.no-hint .hint {
+	display: none;
+}
+.hint {
+	background: rgba(240,240,240,1);
+	border-radius: 2vmax;
+	color: rgba(80,80,80,1);
+	font-size: 90%;
+	font-weight: normal;
+	letter-spacing: 1px;
+	line-height: 1.5;
+	margin: .5vmax 0;
+	margin-left: 1.5vmax;
+	padding: 1.5vmax;
 }
 
 #settings > :not(:last-child) {

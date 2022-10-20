@@ -94,19 +94,19 @@ class OpenUrls extends WX {
 					const { CFG_PATH } = OpenUrls,
 							{ browser, setting } = this,
 							{ contextMenus, storage } = this.browser;
-					let i,k, saves, storedStorage, cfg,v;
+					let i,k, saves, storedStorage, v;
 					
-					await fetch(CFG_PATH).then(fetched => fetched.json()).then(json => cfg = json),
+					await fetch(CFG_PATH).then(fetched => fetched.json()).then(json => this.cfg = json),
 					
 					await this.getStorage().then(storage => storedStorage = storage);
 					
-					const	{ ['main-item-in-context-menu']: mainMenuItem, values } = cfg, l = values.length,
+					const	{ cfg: { ['main-item-in-context-menu']: mainMenuItem, values } } = this, l = values.length,
 							{ setting: stored = {} } = storedStorage;
 					
 					i = -1;
 					while (++i < l) setting[k = (v = values[i]).key] = k in stored ? stored[k] : (saves ||= true, v.value);
 					
-					await this.setStorage({ setting, cfg }),
+					await this.setStorage({ setting, cfg: this.cfg }),
 					
 					this.updateMenu?.((this.mainMenuItem = mainMenuItem).option, true),
 					
@@ -215,6 +215,26 @@ const openUrls = new OpenUrls(browser || chrome);
 
 browser.action?.onClicked?.addListener?.(() => browser.runtime.openOptionsPage()),
 
+browser.permissions?.onRemoved?.addListener?.(removed => {
+		
+		openUrls.booted.then(() => {
+			
+			const	{ permissions } = removed, l = permissions.length,
+					{ cfg: { values }, setting } = openUrls, l0 = values.length;
+			let i,i0,v, pList;
+			
+			i = -1;
+			while (++i < l) {
+				i0 = -1;
+				while (++i0 < l0) Array.isArray(pList = (v = values[i0]).permissions) &&
+					(pList.indexOf(permissions[i]) === -1 || (setting[v.key] = false));
+			}
+			
+			openUrls.setStorage({ setting });
+			
+		});
+		
+	}),
 browser.storage?.onChanged?.addListener?.(storageChange => {
 		
 		openUrls.booted.then(() => {
@@ -226,30 +246,28 @@ browser.storage?.onChanged?.addListener?.(storageChange => {
 	}),
 browser.contextMenus?.onClicked?.addListener?.(async (info, tab) => {
 		
-		let urls, copies;
+		const	{
+					apiKeys,
+					booted,
+					browser: { notifications },
+					notification: { requireClipboardWritePermission },
+					setting: {
+						['enable-copying-urls']: copiesUrls,
+						['ignore-no-scheme']: ignoresNoScheme,
+						['upgrade-https']: upgradesHttps,
+						['default-protocol']: defaultProtocol,
+					}
+				} = openUrls,
+				urls = OpenUrls.getUrls(info.selectionText, upgradesHttps, defaultProtocol),
+				{ modifiers } = info,
+				copies = modifiers.indexOf('Ctrl') !== -1;
 		
-		await openUrls.booted.then(() => {
-				
-				const	{ modifiers } = info;
-				
-				urls = OpenUrls.getUrls(
-								info.selectionText,
-								openUrls.setting['ignore-no-scheme'],
-								openUrls.setting['upgrade-https'],
-								openUrls.setting['default-protocol']
-							);
-				
-				if (!(copies = modifiers.indexOf('Ctrl') !== -1)) {
-					
-					openUrls.openUrls(urls, tab.index + 1, modifiers.indexOf('Shift') !== -1);
-					
-				}
-				
-			});
+		await booted.then(() => copies || openUrls.openUrls(urls, tab.index + 1, modifiers.indexOf('Shift') !== -1));
 		
-		urls?.length && (
-				openUrls.apiKeys.indexOf('clipboardWrite') === -1 ?
-					openUrls.browser.notifications?.create?.(openUrls.notification.requireClipboardWritePermission) :
+		copiesUrls && copies && urls?.length &&
+			(
+				apiKeys.indexOf('clipboardWrite') === -1 ?
+					notifications?.create?.(requireClipboardWritePermission) :
 					navigator.clipboard.writeText(urls.join('\n'))
 			);
 		

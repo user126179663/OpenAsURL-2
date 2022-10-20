@@ -2,14 +2,40 @@
 	"values": [
 		
 		{
+			"key": "unwant-hints",
+			"value": false,
+			"attr": "check fr",
+			"children": [
+				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
+				{
+					"attr": "description",
+					"children": [
+						{
+							"tag": "label",
+							"contents": "このオプションのヒント表示をオフにする。"
+						},
+						{
+							"attr": "hint",
+							"contents": "ヒントは、この部分のことです。"
+						}
+					]
+				}
+			]
+		},
+		{
 			"key": "ignore-no-scheme",
 			"value": false,
 			"attr": "check fr",
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
 				{
-					"tag": "label",
-					"contents": "URL にスキーム名を必須にする。"
+					"attr": "description",
+					"children": [
+						{
+							"tag": "label",
+							"contents": "URL にスキーム名を必須にする。"
+						}
+					]
 				}
 			]
 		},
@@ -24,8 +50,13 @@
 					"ds": { "disabledValue": "", "disableTrue": "#ignore-no-scheme, #upgrade-https" }
 				},
 				{
-					"tag": "label",
-					"contents": "URL にスキーム名がない場合の既定値を HTTPS ではなく HTTP にする。"
+					"attr": "description",
+					"children": [
+						{
+							"tag": "label",
+							"contents": "URL にスキーム名がない場合の既定値を HTTPS ではなく HTTP にする。"
+						}
+					]
 				}
 			]
 		},
@@ -36,8 +67,13 @@
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
 				{
-					"tag": "label",
-					"contents": "常に HTTPS で接続を試みる。"
+					"attr": "description",
+					"children": [
+						{
+							"tag": "label",
+							"contents": "常に HTTPS で接続を試みる。"
+						}
+					]
 				}
 			]
 		},
@@ -52,8 +88,17 @@
 					"ds": { "disabledValue": "", "disableTrue": "#open-incognito" }
 				},
 				{
-					"tag": "label",
-					"contents": "URL を開いたら、そのタブを表示する。（複数開いた場合は先頭のタブを表示します）"
+					"attr": "description",
+					"children": [
+						{
+							"tag": "label",
+							"contents": "URL を開いたら、そのタブを表示する。"
+						},
+						{
+							"attr": "hint",
+							"contents": "複数開いた場合は先頭のタブを表示します。"
+						}
+					]
 				}
 			]
 		},
@@ -64,8 +109,17 @@
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
 				{
-					"tag": "label",
-					"contents": "常に新規に開いたプライベートウィンドウで URL を開く。（「プライベートウィンドウでの実行」が「許可する」になっている必要があります。同設定はこの拡張機能の管理の「詳細」にあります）"
+					"attr": "description",
+					"children": [
+						{
+							"tag": "label",
+							"contents": "常に新規に開いたプライベートウィンドウで URL を開く。"
+						},
+						{
+							"attr": "hint",
+							"contents": "「プライベートウィンドウでの実行」が「許可する」になっている必要があります。同設定はこの拡張機能の管理の「詳細」にあります。"
+						}
+					]
 				}
 			]
 		},
@@ -76,8 +130,13 @@
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
 				{
-					"tag": "label",
-					"contents": "この拡張機能の右クリックメニュー内の項目に、選択中のテキストを表示する。"
+					"attr": "description",
+					"children": [
+						{
+							"tag": "label",
+							"contents": "この拡張機能の右クリックメニュー内の項目に、選択中のテキストを表示する。"
+						}
+					]
 				}
 			]
 		},
@@ -88,24 +147,44 @@
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
 				{
-					"tag": "label",
-					"contents": "この拡張機能からの通知を許可する。（選択されたテキストに URL がなかった時などに表示されます）"
+					"attr": "description",
+					"children": [
+						{
+							"tag": "label",
+							"contents": "この拡張機能からの通知を許可する。"
+						},
+						{
+							"attr": "hint",
+							"contents": "選択されたテキストに URL がなかった時などに表示されます。"
+						}
+					]
 				}
 			]
 		},
 		{
+			
 			"key": "enable-copying-urls",
 			"value": false,
+			"permissions": [ "clipboardWrite" ],
+			
 			"attr": "check fr",
 			"children": [
 				{
 					"tag": "input",
-					"attr": { "class": "configurable", "type": "checkbox" },
-					"ds": { "permissions": "clipboardWrite" }
+					"attr": { "class": "configurable", "type": "checkbox" }
 				},
 				{
-					"tag": "label",
-					"contents": "キーボードの Ctrl を押しながら URL を開くと、URL を開かずに、それらをクリップボードにコピーする。（クリップボードへの書き込みを許可する必要があります。同設定はこの拡張機能の管理の「許可設定」にあります）"
+					"attr": "description",
+					"children": [
+						{
+							"tag": "label",
+							"contents": "キーボードの Ctrl を押しながら URL を開くと、URL を開かずに、テキストとしてクリップボードにコピーする。"
+						},
+						{
+							"attr": "hint",
+							"contents": "クリップボードへの書き込みを許可する必要があります。同設定はこの拡張機能の管理の「許可設定」にあります。また、この機能は HTTPS で接続したページでのみ動作します。"
+						}
+					]
 				}
 			]
 		}
