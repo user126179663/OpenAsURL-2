@@ -1,11 +1,15 @@
 body {
 }
-
-#settings {
+fieldset {
 	
 	border: none;
 	display: block;
 	margin: 0;
+	
+}
+
+#values {
+	
 	padding: 1.5vmax 0 0;
 	
 }

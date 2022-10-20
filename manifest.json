@@ -16,6 +16,7 @@
 	},
 	
 	"permissions": [ "activeTab", "contextMenus", "notifications", "storage" ],
+	"optional_permissions": [ "clipboardWrite" ],
 	
 	"background": { "scripts": [ "wx.js", "regex-weburl.js", "background.js" ] },
 	

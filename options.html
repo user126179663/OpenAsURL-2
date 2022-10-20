@@ -14,39 +14,14 @@
 			<link rel="stylesheet" href="options.css">
 			
 			<fieldset id="settings">
-				<!--<div class="check fr">
-					<input id="ignore-no-scheme" class="configurable" type="checkbox">
-					<label for="ignore-no-scheme">完全、断片を問わずスキーム名がないテキストはすべて URL として認識しない。</label>
-				</div>
-				<div class="check fr">
-					<input id="default-protocol" class="configurable" type="checkbox" data-disabled-value="" data-disable-true="#ignore-no-scheme, #upgrade-https">
-					<label for="default-protocol">URL にスキーム名がない場合、HTTP で補完する。（既定は HTTPS）</label>
-				</div>
-				<div class="check fr">
-					<input id="upgrade-https" class="configurable" type="checkbox" data-disabled-value="">
-					<label for="upgrade-https">常に HTTPS での接続を試みる。</label>
-				</div>
-				<div class="check fr">
-					<input id="move-tab-opened" class="configurable" type="checkbox" data-disabled-value="true" data-disable-true="#open-incognito">
-					<label for="move-tab-opened">URL を開いたら、そのタブを表示する。（複数開いた場合は先頭のタブを表示します）</label>
-				</div>
-				<div class="check fr">
-					<input id="open-incognito" class="configurable" type="checkbox">
-					<label for="open-incognito">URL を開く先を、新規に開いたプライベートウィンドウ内にする。<br>（この拡張機能の管理の「詳細」タブ内にある「プライベートウィンドウでの実行」が「許可する」になっている必要があります）</label>
-				</div>
-				<div class="check fr">
-					<input id="show-selected-text" class="configurable" type="checkbox">
-					<label for="show-selected-text">メニュー内の項目に選択中のテキストを表示する。</label>
-				</div>
-				<div class="check fr">
-					<input id="enabled-notifications" class="configurable" type="checkbox">
-					<label for="enabled-notifications">この拡張機能からの通知を許可する。（選択されたテキストに URL がなかった時などに表示されます）</label>
-				</div>-->
+				
+				<fieldset id="values"></fieldset>
+				
+				<section id="buttons">
+					<button id="restore-default-settings" type="button" data-event-type="click">既定の設定を復元</button>
+				</section>
+				
 			</fieldset>
-			
-			<section id="buttons">
-				<button id="restore-default-settings" type="button" data-event-type="click">既定の設定を復元</button>
-			</section>
 			
 		</template>
 		

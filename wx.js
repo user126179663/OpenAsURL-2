@@ -21,13 +21,19 @@ class WX extends HTMLElement {
 	}
 	static async changedPermissions(isAdd, changed) {
 		
-		const type = isAdd ? 'add' : 'remove';
+		const	type = isAdd ? 'add' : 'remove';
 		
-		this[type + 'Apis'](changed.permissions);
+		await this[type + 'Apis'](changed.permissions);
 		
-		await (this.permissions.getAll || this.resolver)().then((current = {}) => {
+		await (this.browser.permissions.getAll || this.resolver)().then((current = {}) => {
 			
-			this.dispatchEvent(new CustomEvent('changed-permissions', { detail: { type, changed, current } }));
+			const { permissions } = current, l = permissions?.length ?? 0;
+			let i, apiKeys, permission;
+			
+			i = -1, (apiKeys = this.apiKeys ||= []).length = 0;
+			while (++i < l) apiKeys[i] = permissions[i];
+			
+			this.dispatchEvent(new CustomEvent('changed-permissions', { detail: { type, changed, current, apiKeys } }));
 			
 		});
 		
@@ -200,18 +206,34 @@ class WX extends HTMLElement {
 		
 	}
 	
-	setBrowser(browser, apiKeys = this.constructor.apiKeys) {
+	async setBrowser(browser, apiKeys = this.constructor.apiKeys) {
 		
-		const last = this.browser;
-		
-		last && typeof last === 'object' && this.removeApis(Object.keys(last)),
-		
-		this.browser = browser = browser && typeof browser === 'object' ? browser : {},
-		
-		this.addApis(apiKeys);
+		return this.ready || !this.available ?
+			(
+				
+				this.ready = false,
+				
+				this.available = new Promise(async rs => {
+					
+					const last = this.browser;
+					
+					last && typeof last === 'object' && this.removeApis(Object.keys(last)),
+					
+					this.browser = browser = browser && typeof browser === 'object' ? browser : {},
+					
+					await this.addApis(apiKeys),
+					
+					this.ready = true,
+					
+					rs(this);
+					
+				})
+				
+			) :
+			this.available.then(() => this.setBrowser(...arguments));
 		
 	}
-	addApis(keys) {
+	async addApis(keys) {
 		
 		const l = (keys = Array.isArray(keys) ? keys : [ ...arguments ]).length, { browser } = this;
 		let i,k,api;
@@ -226,6 +248,8 @@ class WX extends HTMLElement {
 			switch (k) {
 				
 				case 'permissions':
+				
+				this.apiKeys = await this.getGrantedApiKeys(),
 				
 				api.onAdded?.addListener?.(this.addedPermissions),
 				api.onRemoved?.addListener?.(this.removedPermissions);
@@ -273,7 +297,7 @@ class WX extends HTMLElement {
 				
 				case 'storage':
 				
-				browser.storage.onChange?.removeListener?.(this.changedStorage),
+				browser.storage.onChanged?.removeListener?.(this.changedStorage),
 				
 				delete this.getStorage, delete this.setStorage;
 				

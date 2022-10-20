@@ -56,32 +56,38 @@ class OpenUrls extends WX {
 		
 		super(browser, apiKeys);
 		
-		this.notification = {
-			noUrl:	{
-							iconUrl: 'icon.svg',
-							message: 'URL はありません。',
-							title: this.meta?.name,
-							type: 'basic'
-						},
-			notAllowedIncognitoAccess:	{
-							iconUrl: 'icon.svg',
-							message: 'プライベートウィンドウでの実行が許可されていないため、設定に基づいて URL をプライベートウィンドウで開くことができません。',
-							title: this.meta?.name,
-							type: 'basic'
-						}
-		},
-		
 		this.init();
 		
 	}
 	
 	init() {
 		
-		return this.inizitalized || !this.available ?
+		return this.inizitalized || !this.booted ?
 			(
 				
 				this.initialized = false,
-				this.available = new Promise(async rs => {
+				this.available.then(() => this.booted = new Promise(async rs => {
+					
+					this.notification = {
+						noUrl: {
+								iconUrl: 'icon.svg',
+								message: 'URL はありません。',
+								title: this.meta?.name,
+								type: 'basic'
+							},
+						notAllowedIncognitoAccess:	{
+								iconUrl: 'icon.svg',
+								message: 'プライベートウィンドウでの実行が許可されていないと、 URL をプライベートウィンドウで開くことはできません。実行の許可は、この拡張機能の管理から行なえます。',
+								title: this.meta?.name,
+								type: 'basic'
+							},
+						requireClipboardWritePermission: {
+								iconUrl: 'icon.svg',
+								message: 'URL をコピーするには、この拡張機能の管理から「クリップボードへのデータ入力」を許可する必要があります。',
+								title: this.meta?.name,
+								type: 'basic'
+							}
+					},
 					
 					this.setting = {};
 					
@@ -108,10 +114,10 @@ class OpenUrls extends WX {
 					
 					rs(this);
 					
-				})
+				}))
 				
 			) :
-			this.available;
+			this.booted;
 		
 	}
 	
@@ -138,7 +144,7 @@ class OpenUrls extends WX {
 		
 	}
 	
-	openUrls(urls, tabIndex) {
+	openUrls(urls, tabIndex, incognito) {
 		
 		const l = urls && (Array.isArray(urls) ? urls : (urls = [ urls ])).length,
 				{ browser: { extension, tabs, notifications, windows }, notification, setting } = this;
@@ -149,13 +155,13 @@ class OpenUrls extends WX {
 					tabOption = { active: !!setting['move-tab-opened'] };
 			let i;
 			
-			if (setting['open-incognito']) {
+			if (incognito || setting['open-incognito']) {
 				
 				extension.isAllowedIncognitoAccess().then(
 						allowedIncognitoAccess =>
 							allowedIncognitoAccess ?	windows.create?.({ incognito: true, url: urls }) :
 																setting['enabled-notifications'] &&
-																	(notifications?.create?.(notification.notAllowedIncognitoAccess))
+																	notifications?.create?.(notification.notAllowedIncognitoAccess)
 					);
 				
 			} else {
@@ -203,33 +209,48 @@ customElements.define(OpenUrls.tagName, OpenUrls);
 // インスタンスのプロパティの作成が間に合わなかった場合に処理に不整合を引き起こす恐れが生じる。
 // そのため、ここではインスタンスの初期化処理の完了で解決する Promise を示すプロパティをインスタンスに作成し、
 // イベントリスナー内ではそのプロパティが持つ Promise の解決後に続く処理を実行するようにしている。
-// 具体的には openUrls.available が初期化処理の完了を確認できるプロパティで、
-// openUrls.available.then(...) で、イベントが通知されたリスナー内ののインスタンスを使う処理を実行している。
+// 具体的には openUrls.booted が初期化処理の完了を確認できるプロパティで、
+// openUrls.booted.then(...) で、イベントが通知されたリスナー内ののインスタンスを使う処理を実行している。
 const openUrls = new OpenUrls(browser || chrome);
 
 browser.action?.onClicked?.addListener?.(() => browser.runtime.openOptionsPage()),
 
 browser.storage?.onChanged?.addListener?.(storageChange => {
 		
-		openUrls.available.then(() => {
+		openUrls.booted.then(() => {
 			
 			openUrls.getStorage('setting').then(storage => openUrls.update(storage.setting));
 			
 		});
 		
 	}),
-browser.contextMenus?.onClicked?.addListener?.((info, tab) => {
+browser.contextMenus?.onClicked?.addListener?.(async (info, tab) => {
 		
-		openUrls.available.then(() =>
-				openUrls.openUrls(
-						OpenUrls.getUrls(
+		let urls, copies;
+		
+		await openUrls.booted.then(() => {
+				
+				const	{ modifiers } = info;
+				
+				urls = OpenUrls.getUrls(
 								info.selectionText,
 								openUrls.setting['ignore-no-scheme'],
 								openUrls.setting['upgrade-https'],
 								openUrls.setting['default-protocol']
-							),
-						tab.index + 1
-					)
+							);
+				
+				if (!(copies = modifiers.indexOf('Ctrl') !== -1)) {
+					
+					openUrls.openUrls(urls, tab.index + 1, modifiers.indexOf('Shift') !== -1);
+					
+				}
+				
+			});
+		
+		urls?.length && (
+				openUrls.apiKeys.indexOf('clipboardWrite') === -1 ?
+					openUrls.browser.notifications?.create?.(openUrls.notification.requireClipboardWritePermission) :
+					navigator.clipboard.writeText(urls.join('\n'))
 			);
 		
 	});

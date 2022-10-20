@@ -32,27 +32,6 @@ class OpenUrlsOptions extends WX {
 		
 	}
 	
-	static
-	flatPermissionsLists(
-		granted,
-		grantNodes = document.querySelectorAll(':checked[data-permissions]'),
-		revokeNodes = document.querySelectorAll(':not(:checked)[data-permissions]')
-	) {
-		
-		const	{ getPermissionsListFromNodes } = OpenUrlsOptions,
-				grants = getPermissionsListFromNodes(grantNodes),
-				revocation = getPermissionsListFromNodes(revokeNodes);
-		let i,i0,l, grant;
-		
-		i = -1, l = grants.length;
-		while (++i < l)	grant = grants[i],
-								granted && (granted.indexOf(grant) === -1 || (grants.splice(i--,1), --l)),
-								(i0 = revocation.indexOf(grant)) === -1 || revocation.split(i0, 1);
-		
-		return { grants, revocation };
-		
-	}
-	
 	static getCtrlValue(ctrl) {
 		
 		return ctrl.disabled ? !!ctrl.dataset.disabledValue : ctrl.checked;
@@ -99,35 +78,41 @@ class OpenUrlsOptions extends WX {
 		}
 		
 	}
+	// * * * 重要 * * *
+	// このリスナーに非同期処理を追加する場合、必ず this.browser.permissions.request よりあとにするか、
+	// その処理を行わないことが確定している場合に限ること。でなければ以下のエラーが生じる。
+	// Error: permissions.request may only be called from a user input handler
+	// これはリスナーの実行がユーザーの操作に基づいていないことを示すが、実際にクリックなどのユーザーの操作を通じてリスナーが起動しても、
+	// そのリスナーの中で一度でも非同期処理を経ると ユーザーの操作外の処理と見なされ、this.browser.permissions.request の実行は失敗する。
 	static async changedCtrl({ target }) {
 		
-		const	{ CFG_PATH, flatPermissionsLists } = OpenUrlsOptions,
-				grantedPermissions = await this.getGrantedApiKeys(),
-				ctrls = this.getControllers(), l = ctrls.length;
-		let i, ctrl, reflection, permissionLists, callback;
+		const	{ apiKeys } = this,
+				ctrls = this.getControllers(), l = ctrls.length,
+				valueNodes = this.getValueNodes(), vl = valueNodes.length;
+		let i, ctrl, node, reflection, permissionLists, callback;
 		
 		switch (target.id) {
 			
 			case 'restore-default-settings':
 			
-			const { cfg: { values }, lastSetting } = this;
+			const { cfg: { values }, defaultValue, lastSetting } = this;
 			let i0,l0,i1,k, v;
 			
 			i = i0 = i1 = -1, l0 = values.length, permissionLists = [];
-			while (++i < l) {
+			while (++i < vl) {
 				
-				if ((ctrl = ctrls[i]).dataset.permissions) {
+				if ((node = valueNodes[i]).dataset.permissions) {
 					
-					i0 = -1, k = ctrl.id;
+					i0 = -1, k = node.id;
 					while (++i0 < l0 && k !== values[i0].key);
-					i0 === l0 || ((v = values[i0].value) && lastSetting[k] !== v && (permissionLists[++i1] = ctrl));
+					i0 === l0 || ((v = values[i0].value) && lastSetting[k] !== v && (permissionLists[++i1] = node));
 					
 				}
 			
 			}
 			
-			permissionLists = flatPermissionsLists(grantedPermissions, permissionLists).additional,
-			reflection = [ this.apply, this, [ defaultSetting ] ];
+			permissionLists = this.flatPermissionsLists(apiKeys, permissionLists).grants,
+			reflection = [ this.apply, this, [ defaultValue ] ];
 			
 			break;
 			
@@ -146,7 +131,7 @@ class OpenUrlsOptions extends WX {
 				
 			}
 			
-			permissionLists = flatPermissionsLists(grantedPermissions).additional,
+			permissionLists = this.flatPermissionsLists(apiKeys).grants,
 			reflection ||= [ this.save, this, [] ];
 			
 			break;
@@ -157,23 +142,22 @@ class OpenUrlsOptions extends WX {
 			//
 			default:
 			
-			permissionLists = flatPermissionsLists(grantedPermissions).additional,
+			permissionLists = this.flatPermissionsLists(apiKeys).grants,
+			
 			reflection ||= [ this.save, this, [] ];
 			
 		}
 		
 		if (Array.isArray(permissionLists) && permissionLists.length) {
 			
-			i = -1;
-			while (++i < l) (ctrl = ctrls[i]).hasAttribute('disabled') ||
-				(ctrl.classList.add('disabled-temporary'), ctrl.disabled = true);
+			const settingsNode = this.shadow.getElementById('settings');
 			
-			await permissions.request({ permissions: permissionLists }).
+			settingsNode.setAttribute('disabled', ''),
+			
+			await this.browser.permissions.request({ permissions: permissionLists }).
 				then(result => result || (target instanceof HTMLInputElement && (target.checked = false))),
 			
-			i = -1;
-			while (++i < l) (ctrl = ctrls[i]).classList.contains('disabled-temporary') &&
-				(ctrl.classList.remove('disabled-temporary'), ctrl.disabled = false);
+			settingsNode.removeAttribute('disabled');
 			
 		}
 		
@@ -181,7 +165,7 @@ class OpenUrlsOptions extends WX {
 		
 	}
 	
-	static changedPermissions({ detail: { changed, current, type } }) {
+	static changedPermissions({ detail: { changed, current, type, apiKeys } }) {
 		
 		this.apply();
 		
@@ -203,7 +187,7 @@ class OpenUrlsOptions extends WX {
 	}
 	connectedCallback() {
 		
-		this.setting || this.init();
+		this.setting || this.available.then(() => this.init());
 		
 	}
 	
@@ -211,7 +195,12 @@ class OpenUrlsOptions extends WX {
 		
 		await this.getStorage().then(storage => (this.setting = storage.setting, this.cfg = storage.cfg));
 		
-		const settingsNode = this.shadow.getElementById('settings');
+		const	settingsNode = this.shadow.getElementById('values'),
+				{ values } = this.cfg, l = values.length, defaultValue = this.defaultValue = {};
+		let i, v;
+		
+		i = -1;
+		while (++i < l) defaultValue[(v = values[i]).key] = v.value;
 		
 		this.ac?.abort?.();
 		while (settingsNode.firstElementChild) settingsNode.firstElementChild.remove();
@@ -225,7 +214,7 @@ class OpenUrlsOptions extends WX {
 			),
 		
 		this.addEventListener('applied', this.applied),
-		this.addEventListener('changed-permissions', this.changedPermissions),
+		this.addEventListener('changed-permissions-sync', this.changedPermissions),
 		
 		this.lastSetting = {},
 		
@@ -274,8 +263,8 @@ class OpenUrlsOptions extends WX {
 		
 		const	{ ac, lastSetting, shadow } = this,
 				ctrls = this.getControllers(), valueNodes = this.getValueNodes(), removalNodes = [],
-				field = this.shadow.getElementById('settings');
-		let i,l,i0,l0,k, ctrl, node, current, changedSetting;
+				field = this.shadow.getElementById('values');
+		let i,l,i0,l0,k, ctrl, node, current, changedSetting, granted;
 		
 		i = i0 = -1, l  = valueNodes.length, field.setAttribute('disabled', ''), this.ac?.abort?.();
 		while (++i < l)
@@ -286,17 +275,17 @@ class OpenUrlsOptions extends WX {
 		if (i0 !== -1) {
 			
 			const	{ permissions } = this.browser,
-					{ removal } = getNormalizedPLists(null, granted = await this.getGrantedApiKeys(), removalNodes);
+					{ revocation } = this.flatPermissionsLists(null, granted = await this.getGrantedApiKeys(), removalNodes);
 			
-			await permissions.remove({ permissions: removal }).then(async result => {
+			await permissions.remove({ permissions: revocation }).then(async result => {
 					
 					if (result) {
 						
-						const l = removal.length;
+						const l = revocation.length;
 						let i,i0;
 						
 						i = -1;
-						while (++i < l) (i0 = granted.indexOf(removal[i])) === -1 || granted.splice(i0,1);
+						while (++i < l) (i0 = granted.indexOf(revocation[i])) === -1 || granted.splice(i0,1);
 						
 					} else granted = await this.getGrantedApiKeys();
 					
@@ -318,7 +307,7 @@ class OpenUrlsOptions extends WX {
 			
 		}
 		
-		this.lastSetting = setting;
+		this.lastSetting = { ...setting };
 		
 		if (changedSetting) {
 			
@@ -368,6 +357,26 @@ class OpenUrlsOptions extends WX {
 		}
 		
 		target[(enables ? 'remove' : 'set') + 'Attribute']('disabled', '');
+		
+	}
+	
+	flatPermissionsLists(
+		granted,
+		grantNodes = this.shadow.querySelectorAll(':checked[data-permissions]'),
+		revokeNodes = this.shadow.querySelectorAll(':not(:checked)[data-permissions]')
+	) {
+		
+		const	{ getPermissionsListFromNodes } = OpenUrlsOptions,
+				grants = getPermissionsListFromNodes(grantNodes),
+				revocation = getPermissionsListFromNodes(revokeNodes);
+		let i,i0,l, grant;
+		
+		i = -1, l = grants.length;
+		while (++i < l)	grant = grants[i],
+								granted && (granted.indexOf(grant) === -1 || (grants.splice(i--,1), --l)),
+								(i0 = revocation.indexOf(grant)) === -1 || revocation.split(i0, 1);
+		
+		return { grants, revocation };
 		
 	}
 	

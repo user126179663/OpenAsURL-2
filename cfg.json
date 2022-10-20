@@ -65,7 +65,7 @@
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
 				{
 					"tag": "label",
-					"contents": "URL を開く先を、新規に開いたプライベートウィンドウ内にする。<br>（この拡張機能の管理の「詳細」タブ内にある「プライベートウィンドウでの実行」が「許可する」になっている必要があります）"
+					"contents": "常に新規に開いたプライベートウィンドウで URL を開く。（「プライベートウィンドウでの実行」が「許可する」になっている必要があります。同設定はこの拡張機能の管理の「詳細」にあります）"
 				}
 			]
 		},
@@ -90,6 +90,22 @@
 				{
 					"tag": "label",
 					"contents": "この拡張機能からの通知を許可する。（選択されたテキストに URL がなかった時などに表示されます）"
+				}
+			]
+		},
+		{
+			"key": "enable-copying-urls",
+			"value": false,
+			"attr": "check fr",
+			"children": [
+				{
+					"tag": "input",
+					"attr": { "class": "configurable", "type": "checkbox" },
+					"ds": { "permissions": "clipboardWrite" }
+				},
+				{
+					"tag": "label",
+					"contents": "キーボードの Ctrl を押しながら URL を開くと、URL を開かずに、それらをクリップボードにコピーする。（クリップボードへの書き込みを許可する必要があります。同設定はこの拡張機能の管理の「許可設定」にあります）"
 				}
 			]
 		}
