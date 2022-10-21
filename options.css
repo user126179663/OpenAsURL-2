@@ -71,3 +71,53 @@ fieldset {
 	justify-content: flex-end;
 	margin-top: 2vmax;
 }
+
+#commands {
+	
+	
+}
+command-view {
+	
+	display: block;
+	
+}
+command-view:not(:last-child) {
+	
+	margin-bottom: 1vmax;
+	
+}
+command-view:not(:last-child) {
+	
+	border-bottom: 1px solid rgba(216,216,216,1);
+	padding-bottom: 1vmax;
+	
+}
+
+.key-top {
+	
+	--size: 3vmax;
+	
+	align-items: center;
+	border: 1px solid rgba(200,200,200,1);
+	border-bottom-width: .3vmax;
+	border-radius: var(--size);
+	box-sizing: border-box;
+	color: rgba(120,120,120,1);
+	display: flex;
+	justify-content: center;
+	font: normal normal bold 100%/1 monospace;
+	margin: 0 .2vmax;
+	min-width: var(--size);
+	max-height: var(--size);
+	padding: 1vmax;
+	
+}
+
+command-view:not(.available),
+command-view .description:not(.default),
+command-view .description.hide {
+	display: none;
+}
+command-view .description.visible {
+	display: block !important;
+}

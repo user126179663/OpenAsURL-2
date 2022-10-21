@@ -202,14 +202,25 @@ class OpenUrlsOptions extends WX {
 	//	this.apply();
 	//	
 	//}
+	static appliedCommandsList() {
+		
+		const	{ setting, shadow } = this,
+				commandViews = shadow.querySelectorAll('#commands-list command-view'), l = commandViews.length;
+		let i;
+		
+		i = -1;
+		while (++i < l) commandViews[i].apply(setting);
+		
+	}
 	
 	constructor(wxApi = browser || chrome, apiKeys) {
 		
 		super(wxApi, apiKeys);
 		
-		const { applied, changedCtrl, changedValues } = OpenUrlsOptions;
+		const { applied, appliedCommandsList, changedCtrl, changedValues } = OpenUrlsOptions;
 		
 		this.applied = applied.bind(this),
+		this.appliedCommandsList = appliedCommandsList.bind(this),
 		this.changedCtrl = changedCtrl.bind(this),
 		this.changedValues = changedValues.bind(this),
 		
@@ -256,7 +267,46 @@ class OpenUrlsOptions extends WX {
 		
 		this.lastSetting = {},
 		
+		this.viewCommands(
+			{
+				'open-incognito': {
+					'suggested_key': {
+						'default': 'Shift+左クリック'
+					},
+					description: '選択中のテキスト内の URL をプライベートウィンドウで開きます。',
+					descriptions: [
+						{ true: [ 'open-incognito' ], text: '選択中のテキスト内の URL を同じウィンドウ内に開きます。', exclusive: true }
+					]
+				},
+				'enable-copying-urls': {
+					'suggested_key': {
+						'default': 'Ctrl+左クリック'
+					},
+					available: [ 'enable-copying-urls' ],
+					description: '選択中のテキスト内の URL をクリップボードにコピーします。'
+				}
+			}
+		),
+		this.appliedCommandsList(),
+		this.addEventListener('applied', this.appliedCommandsList),
+		
 		this.apply();
+		
+	}
+	
+	viewCommands(commands = this.meta?.commands) {
+		
+		if (commands) {
+			
+			const views = [];
+			let i,k;
+			
+			i = -1;
+			for (k in commands) (views[++i] = document.createElement('command-view')).set(k, commands[k]);
+			
+			i === -1 || this.shadow.getElementById('commands-list').append(...views);
+			
+		}
 		
 	}
 	
@@ -424,4 +474,105 @@ class OpenUrlsOptions extends WX {
 	
 }
 
+class CommandView extends HTMLElement {
+	
+	static {
+		
+		this.tagName = 'command-view',
+		this.template = this.tagName;
+		
+	}
+	
+	constructor() {
+		
+		super();
+		
+		(this.shadow = this.attachShadow({ mode: 'open' })).
+			appendChild(document.getElementById(CommandView.template).cloneNode(true).content);
+		
+	}
+	
+	apply(setting) {
+		
+		const { dataset: { available } } = this, descriptions = this.querySelectorAll('.description:not(.default)');
+		let i,l,i0,l0, description, conditions;
+		
+		i = -1, l = (conditions = available?.split?.(' '))?.length ?? 0;
+		while (++i < l && setting[conditions[i]]);
+		this.classList[i === l ? 'add' : 'remove']('available');
+		
+		if (l = descriptions.length) {
+			
+			let keys;
+			
+			i = -1;
+			while (++i < l) {
+				
+				const	{ dataset: { true: tk, false: fk } } = description = descriptions[i];
+				
+				i0 = -1, l0 = (keys = tk?.split?.(' '))?.length ?? 0;
+				while (++i0 < l0 && setting[keys[i0]]);
+				
+				if (i0 === l0) {
+					
+					i0 = -1, l0 = (keys = fk?.split?.(' '))?.length ?? 0;
+					while (++i0 < l0 && !setting[keys[i0]]);
+					
+				}
+				
+				description.classList[i0 === l0 ? 'add' : 'remove']('visible');
+				
+			}
+			
+			this.querySelector('.description.default').
+				classList[this.querySelector('.visible[data-exclusive]') ? 'add' : 'remove']('hide');
+			
+		}
+	}
+	
+	set(name, command) {
+		
+		const	{ available, description, descriptions, suggested_key } = command,
+				suggested = suggested_key.default.split('+'),
+				suggestedNode =	this.shadow.querySelector('slot[name="suggested"]').assignedNodes()[0] ||
+											document.createElement('div'),
+				nodes = [],
+				{ isArray } = Array;
+		let i,l,i0, node, desc;
+		
+		this.dataset.commandName = this.shadow.getElementById('root').dataset.name = name,
+		
+		available && (this.dataset.available = available.join(' '));
+		
+		while (suggestedNode.firstChildElement) suggestedNode.firstChildElement.remove();
+		
+		i = -1, l = suggested.length;
+		while (++i < l)	(nodes[i] = node = document.createElement('span')).textContent = suggested[i],
+								node.classList.add('command-key', 'key-top');
+		
+		suggestedNode.slot ||= 'suggested',
+		suggestedNode.append(...nodes),
+		
+		nodes.length = 0,
+		(
+			nodes[i0 = 0] = node =	this.querySelector('.description.default') ||
+											document.createElement('div')
+		).textContent = description,
+		node.classList.add(node.slot ||= 'description', 'default'),
+		
+		i = -1, l = descriptions?.length ?? 0;
+		while (++i < l)	(nodes[++i0] = node = document.createElement('div')).textContent =
+									(desc = descriptions[i]).text,
+								isArray(desc.true) && (node.dataset.true = desc.true.join(' ')),
+								isArray(desc.false) && (node.dataset.false = desc.false.join(' ')),
+								desc.exclusive && (node.dataset.exclusive = ''),
+								node.classList.add(node.slot = 'description');
+		
+		this.append(suggestedNode, ...nodes);
+		
+	}
+	
+}
+
+customElements.define(CommandView.tagName, CommandView),
 customElements.define(OpenUrlsOptions.tagName, OpenUrlsOptions);

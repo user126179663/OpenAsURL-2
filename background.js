@@ -77,7 +77,7 @@ class OpenUrls extends WX {
 							},
 						notAllowedIncognitoAccess:	{
 								iconUrl: 'icon.svg',
-								message: 'プライベートウィンドウでの実行が許可されていないと、 URL をプライベートウィンドウで開くことはできません。実行の許可は、この拡張機能の管理から行なえます。',
+								message: 'プライベートウィンドウでの実行が許可されていないと、URL をプライベートウィンドウで開くことはできません。実行の許可は、この拡張機能の管理から行なえます。',
 								title: this.meta?.name,
 								type: 'basic'
 							},
@@ -87,6 +87,7 @@ class OpenUrls extends WX {
 								title: this.meta?.name,
 								type: 'basic'
 							}
+						
 					},
 					
 					this.setting = {};
@@ -155,7 +156,7 @@ class OpenUrls extends WX {
 					tabOption = { active: !!setting['move-tab-opened'] };
 			let i;
 			
-			if (incognito || setting['open-incognito']) {
+			if (setting['open-incognito'] ? !incognito : incognito) {
 				
 				extension.isAllowedIncognitoAccess().then(
 						allowedIncognitoAccess =>
@@ -272,3 +273,16 @@ browser.contextMenus?.onClicked?.addListener?.(async (info, tab) => {
 			);
 		
 	});
+//browser.commands?.onCommand?.addListener?.(command => {
+//		
+//		const { setting } = openUrls;
+//		
+//		if (setting['disable-commands']) return;
+//		
+//		switch (command) {
+//			case 'open-urls':
+//			
+//			break;
+//		}
+//		
+//	});

@@ -2,8 +2,10 @@
 	"values": [
 		
 		{
+			
 			"key": "unwant-hints",
 			"value": false,
+			
 			"attr": "check fr",
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
@@ -23,8 +25,10 @@
 			]
 		},
 		{
+			
 			"key": "ignore-no-scheme",
 			"value": false,
+			
 			"attr": "check fr",
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
@@ -40,8 +44,10 @@
 			]
 		},
 		{
+			
 			"key": "default-protocol",
 			"value": false,
+			
 			"attr": "check fr",
 			"children": [
 				{
@@ -61,8 +67,10 @@
 			]
 		},
 		{
+			
 			"key": "upgrade-https",
 			"value": false,
+			
 			"attr": "check fr",
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
@@ -78,8 +86,10 @@
 			]
 		},
 		{
+			
 			"key": "move-tab-opened",
 			"value": true,
+			
 			"attr": "check fr",
 			"children": [
 				{
@@ -103,8 +113,10 @@
 			]
 		},
 		{
+			
 			"key": "open-incognito",
 			"value": false,
+			
 			"attr": "check fr",
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
@@ -124,8 +136,10 @@
 			]
 		},
 		{
+			
 			"key": "show-selected-text",
 			"value": true,
+			
 			"attr": "check fr",
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
@@ -141,8 +155,10 @@
 			]
 		},
 		{
+			
 			"key": "enabled-notifications",
 			"value": true,
+			
 			"attr": "check fr",
 			"children": [
 				{ "tag": "input", "attr": { "class": "configurable", "type": "checkbox" } },
@@ -151,7 +167,7 @@
 					"children": [
 						{
 							"tag": "label",
-							"contents": "この拡張機能からの通知を許可する。"
+							"contents": "この拡張機能からの通知を表示する。"
 						},
 						{
 							"attr": "hint",
@@ -178,7 +194,7 @@
 					"children": [
 						{
 							"tag": "label",
-							"contents": "キーボードの Ctrl を押しながら URL を開くと、URL を開かずに、テキストとしてクリップボードにコピーする。"
+							"contents": "右クリックメニュー内にあるこの拡張機能の項目をキーボードの Ctrl を押しながら押すと、URL を開かずに、それらをテキストとしてクリップボードにコピーする。"
 						},
 						{
 							"attr": "hint",

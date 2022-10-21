@@ -18,6 +18,27 @@
 	"permissions": [ "activeTab", "contextMenus", "notifications", "storage" ],
 	"optional_permissions": [ "clipboardWrite" ],
 	
+	//"commands": {
+	//	"open-urls": {
+	//		"suggested_key": {
+	//			"default": "Alt+A"
+	//		},
+	//		"description": "選択中のテキスト内の URL を開きます。"
+	//	},
+	//	"open-incognito": {
+	//		"suggested_key": {
+	//			"default": "Alt+Shift+A"
+	//		},
+	//		"description": "選択中のテキスト内の URL をプライベートウィンドウで開きます。"
+	//	},
+	//	"enable-copying-urls": {
+	//		"suggested_key": {
+	//			"default": "Alt+C"
+	//		},
+	//		"description": "選択中のテキスト内の URL をクリップボードにコピーします。"
+	//	}
+	//},
+	
 	"background": { "scripts": [ "wx.js", "regex-weburl.js", "background.js" ] },
 	
 	"options_ui": { "page": "options.html", "browser_style": true, "open_in_tab": false }

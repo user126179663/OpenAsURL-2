@@ -9,11 +9,26 @@
 	</head>
 	<body>
 		
+		<template id="command-view">
+			<link rel="stylesheet" href="command.css">
+			<div id="root">
+				<slot name="suggested"></slot>
+				<slot name="description"></slot>
+			</div>
+		</template>
+		
 		<template id="open-urls-options">
 			
 			<link rel="stylesheet" href="options.css">
 			
+			<fieldset id="commands">
+				<h2>メニュー操作</h2>
+				<div id="commands-list"></div>
+			</fieldset>
+			
 			<fieldset id="settings">
+				
+				<h2>設定</h2>
 				
 				<fieldset id="values"></fieldset>
 				

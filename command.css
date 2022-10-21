@@ -1,0 +1,24 @@
+#root {
+	
+	display: flex;
+	
+}
+#root ::slotted([slot]) {
+	
+	flex: 1 0;
+	
+}
+#root ::slotted([slot="suggested"]) {
+	
+	align-items: center;
+	display: flex;
+	justify-content: end;
+	padding-right: 1vmax;
+	
+}
+#root ::slotted([slot="description"]) {
+	
+	align-items: center;
+	display: flex;
+	
+}
